@@ -88,3 +88,21 @@ module "ebs_csi" {
     project = "epic-gamers-minecraft"
   }
 }
+
+# ---------------------------------------------------------
+# MINECRAFT BACKUPS
+# ---------------------------------------------------------
+
+module "minecraft_backups" {
+  source = "../../modules/minecraft-backups"
+
+  NAME                 = "egm-prod"
+  CLUSTER_NAME         = module.eks.cluster_name
+  NAMESPACE            = "minecraft"
+  SERVICE_ACCOUNT_NAME = "minecraft-backup"
+  RETENTION_DAYS       = 90
+
+  TAGS = {
+    project = "epic-gamers-minecraft"
+  }
+}
