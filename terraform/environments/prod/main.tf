@@ -66,3 +66,19 @@ module "eks" {
     project = "epic-gamers-minecraft"
   }
 }
+
+# ---------------------------------------------------------
+# EBS CSI
+# ---------------------------------------------------------
+
+module "ebs_csi" {
+  source = "../../modules/ebs-csi"
+
+  NAME               = "egm-prod"
+  CLUSTER_NAME       = module.eks.cluster_name
+  KUBERNETES_VERSION = module.eks.cluster_version
+
+  TAGS = {
+    project = "epic-gamers-minecraft"
+  }
+}
