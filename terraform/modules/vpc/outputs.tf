@@ -27,3 +27,12 @@ output "nat_gateway_id" {
   description = "NAT Gateway ID"
   value       = var.ENABLE_NAT_GATEWAY ? aws_nat_gateway.this[0].id : null
 }
+
+output "private_subnet_ids_by_az" {
+  description = "Private subnet IDs keyed by Availability Zone"
+
+  value = {
+    for az, subnet in aws_subnet.private :
+    az => subnet.id
+  }
+}

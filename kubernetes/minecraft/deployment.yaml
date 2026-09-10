@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: minecraft
   namespace: minecraft
+
 spec:
   replicas: 1
 
@@ -36,7 +37,7 @@ spec:
               value: "1.21.11"
 
             - name: MEMORY
-              value: "2G"
+              value: "8G"
 
             - name: ONLINE_MODE
               value: "TRUE"
@@ -64,6 +65,14 @@ spec:
 
             - name: MOTD
               value: "Epic Gamers Minecraft"
+
+          resources:
+            requests:
+              cpu: "2"
+              memory: "8Gi"
+
+            limits:
+              memory: "10Gi"
 
           volumeMounts:
             - name: minecraft-data

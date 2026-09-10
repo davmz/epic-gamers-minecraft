@@ -48,10 +48,16 @@ module "eks" {
 
   NAME = "egm-prod"
 
-  PRIVATE_SUBNET_IDS = module.vpc.private_subnet_ids
+  # EKS control plane keeps both AZs
+  CLUSTER_SUBNET_IDS = module.vpc.private_subnet_ids
+
+  # Minecraft worker node is pinned to the AZ containing the EBS volume
+  NODE_SUBNET_IDS = [
+    module.vpc.private_subnet_ids_by_az["us-east-1a"]
+  ]
 
   NODE_INSTANCE_TYPES = [
-    "m7i-flex.large"
+    "m7i-flex.xlarge"
   ]
 
   NODE_CAPACITY_TYPE = "ON_DEMAND"

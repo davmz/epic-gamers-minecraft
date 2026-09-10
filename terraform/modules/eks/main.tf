@@ -38,7 +38,7 @@ resource "aws_eks_cluster" "this" {
   version  = var.KUBERNETES_VERSION
 
   vpc_config {
-    subnet_ids = var.PRIVATE_SUBNET_IDS
+    subnet_ids = var.CLUSTER_SUBNET_IDS
 
     endpoint_private_access = true
     endpoint_public_access  = true
@@ -111,7 +111,7 @@ resource "aws_eks_node_group" "this" {
   node_group_name = "${var.NAME}-nodes"
   node_role_arn   = aws_iam_role.eks_node.arn
 
-  subnet_ids = var.PRIVATE_SUBNET_IDS
+  subnet_ids = var.NODE_SUBNET_IDS
 
   instance_types = var.NODE_INSTANCE_TYPES
   capacity_type  = var.NODE_CAPACITY_TYPE

@@ -9,11 +9,6 @@ variable "KUBERNETES_VERSION" {
   default     = null
 }
 
-variable "PRIVATE_SUBNET_IDS" {
-  description = "Private subnet IDs used by the EKS cluster and managed node group"
-  type        = list(string)
-}
-
 variable "NODE_INSTANCE_TYPES" {
   description = "EC2 instance types used by the EKS managed node group"
   type        = list(string)
@@ -62,4 +57,14 @@ variable "TAGS" {
   description = "Tags applied to EKS resources"
   type        = map(string)
   default     = {}
+}
+
+variable "CLUSTER_SUBNET_IDS" {
+  description = "Private subnet IDs used by the EKS control plane"
+  type        = list(string)
+}
+
+variable "NODE_SUBNET_IDS" {
+  description = "Subnet IDs used by the EKS managed node group"
+  type        = list(string)
 }
