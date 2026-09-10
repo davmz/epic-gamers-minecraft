@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: minecraft-data-tools
+  namespace: minecraft
+
+spec:
+  containers:
+    - name: tools
+      image: busybox
+      command: ["sh", "-c", "sleep 3600"]
+
+      volumeMounts:
+        - name: minecraft-data
+          mountPath: /data
+
+  volumes:
+    - name: minecraft-data
+      persistentVolumeClaim:
+        claimName: minecraft-data
