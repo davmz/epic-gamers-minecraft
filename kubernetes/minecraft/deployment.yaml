@@ -26,6 +26,10 @@ spec:
               containerPort: 25565
               protocol: TCP
 
+            - name: voicechat
+              containerPort: 24454
+              protocol: UDP
+
           env:
             - name: EULA
               value: "TRUE"
