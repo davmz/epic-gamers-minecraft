@@ -23,12 +23,29 @@ echo "Node group: $NODE_GROUP"
 # SCALE EKS NODE GROUP UP
 # ---------------------------------------------------------
 
+echo "Scaling EKS node group to 1..."
+
 aws eks update-nodegroup-config \
   --cluster-name "$CLUSTER_NAME" \
   --nodegroup-name "$NODE_GROUP" \
   --scaling-config minSize=1,maxSize=2,desiredSize=1
 
-echo "Waiting for EKS node to become Ready..."
+# ---------------------------------------------------------
+# WAIT FOR NODE TO APPEAR
+# ---------------------------------------------------------
+
+echo "Waiting for EKS node to appear..."
+
+until kubectl get nodes --no-headers 2>/dev/null | grep -q .; do
+  echo "No node registered yet. Waiting 10 seconds..."
+  sleep 10
+done
+
+# ---------------------------------------------------------
+# WAIT FOR NODE TO BE READY
+# ---------------------------------------------------------
+
+echo "Node registered. Waiting for it to become Ready..."
 
 kubectl wait \
   --for=condition=Ready \
@@ -40,11 +57,13 @@ kubectl wait \
 # START MINECRAFT
 # ---------------------------------------------------------
 
+echo "Starting Minecraft deployment..."
+
 kubectl scale deployment "$DEPLOYMENT" \
   -n "$NAMESPACE" \
   --replicas=1
 
-echo "Waiting for Minecraft pod..."
+echo "Waiting for Minecraft pod to become available..."
 
 kubectl rollout status deployment/"$DEPLOYMENT" \
   -n "$NAMESPACE" \
