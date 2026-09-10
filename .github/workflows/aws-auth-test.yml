@@ -15,7 +15,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
-                    role-to-assume: arn:aws:iam::740901968217:role/epic-gamers-minecraft-github-oidc-test
+          role-to-assume: arn:aws:iam::740901968217:role/epic-gamers-minecraft-github-oidc-test
           aws-region: us-east-1
 
       - name: Verify AWS identity
