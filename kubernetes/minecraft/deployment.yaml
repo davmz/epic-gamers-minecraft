@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecraft
+  namespace: minecraft
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: minecraft
+
+  template:
+    metadata:
+      labels:
+        app: minecraft
+
+    spec:
+      containers:
+        - name: minecraft
+          image: itzg/minecraft-server:latest
+
+          ports:
+            - name: minecraft
+              containerPort: 25565
+              protocol: TCP
+
+          env:
+            - name: EULA
+              value: "TRUE"
+
+            - name: TYPE
+              value: "FABRIC"
+
+            - name: VERSION
+              value: "1.21.11"
+
+            - name: MEMORY
+              value: "2G"
+
+            - name: ONLINE_MODE
+              value: "TRUE"
+
+            - name: ENABLE_WHITELIST
+              value: "TRUE"
+
+            - name: ENFORCE_WHITELIST
+              value: "TRUE"
+
+            - name: MAX_PLAYERS
+              value: "7"
+
+            - name: DIFFICULTY
+              value: "normal"
+
+            - name: MODE
+              value: "survival"
+
+            - name: VIEW_DISTANCE
+              value: "10"
+
+            - name: SIMULATION_DISTANCE
+              value: "10"
+
+            - name: MOTD
+              value: "Epic Gamers Minecraft"
+
+          volumeMounts:
+            - name: minecraft-data
+              mountPath: /data
+
+      volumes:
+        - name: minecraft-data
+          persistentVolumeClaim:
+            claimName: minecraft-data
