@@ -1,0 +1,78 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minecraft-backup
+  namespace: minecraft
+
+spec:
+  backoffLimit: 1
+
+  template:
+    spec:
+      restartPolicy: Never
+
+      serviceAccountName: minecraft-backup
+
+      containers:
+        - name: backup
+          image: alpine:3.20
+
+          command:
+            - /bin/sh
+            - -c
+
+          args:
+            - |
+              set -e
+
+              echo "Installing backup tools..."
+
+              apk add --no-cache \
+                aws-cli \
+                tar \
+                gzip
+
+              TIMESTAMP=$(date +"%Y-%m-%d-%H%M%S")
+              BACKUP_NAME="minecraft-backup-${TIMESTAMP}.tar.gz"
+              BACKUP_PATH="/tmp/${BACKUP_NAME}"
+
+              echo "Creating backup: ${BACKUP_NAME}"
+
+              BACKUP_ITEMS="world mods config whitelist.json ops.json server.properties"
+
+              if [ -d /data/world_nether ]; then
+                BACKUP_ITEMS="${BACKUP_ITEMS} world_nether"
+              fi
+
+              if [ -d /data/world_the_end ]; then
+                BACKUP_ITEMS="${BACKUP_ITEMS} world_the_end"
+              fi
+
+              echo "Backing up:"
+              echo "${BACKUP_ITEMS}"
+
+              tar -czf "${BACKUP_PATH}" \
+                -C /data \
+                ${BACKUP_ITEMS}
+
+              echo "Uploading backup to S3..."
+
+              aws s3 cp \
+                "${BACKUP_PATH}" \
+                "s3://${BACKUP_BUCKET}/backups/${BACKUP_NAME}"
+
+              echo "Backup completed successfully."
+
+          env:
+            - name: BACKUP_BUCKET
+              value: "egm-prod-minecraft-backups-2614fcce172505dc9a1546ec8e"
+
+          volumeMounts:
+            - name: minecraft-data
+              mountPath: /data
+              readOnly: true
+
+      volumes:
+        - name: minecraft-data
+          persistentVolumeClaim:
+            claimName: minecraft-data
