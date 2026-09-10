@@ -1,3 +1,7 @@
+# ---------------------------------------------------------
+# VPC
+# ---------------------------------------------------------
+
 module "vpc" {
   source = "../../modules/vpc"
 
@@ -29,6 +33,34 @@ module "vpc" {
   }
 
   ENABLE_NAT_GATEWAY = true
+
+  TAGS = {
+    project = "epic-gamers-minecraft"
+  }
+}
+
+# ---------------------------------------------------------
+# EKS
+# ---------------------------------------------------------
+
+module "eks" {
+  source = "../../modules/eks"
+
+  NAME = "egm-prod"
+
+  PRIVATE_SUBNET_IDS = module.vpc.private_subnet_ids
+
+  NODE_INSTANCE_TYPES = [
+    "m7i-flex.large"
+  ]
+
+  NODE_CAPACITY_TYPE = "ON_DEMAND"
+
+  NODE_DESIRED_SIZE = 1
+  NODE_MIN_SIZE     = 1
+  NODE_MAX_SIZE     = 2
+
+  NODE_DISK_SIZE = 30
 
   TAGS = {
     project = "epic-gamers-minecraft"
