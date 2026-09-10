@@ -3,26 +3,59 @@
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl.backup
+terraform.tfvars
+*.tfvars
+*.tfvars.json
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
 # Secrets
 .env
 .env.*
 *.pem
 *.key
+*.p12
+*.pfx
+*.crt
+*.cer
 
 # Minecraft runtime data
 minecraft/data/
 world/
+world_nether/
+world_the_end/
 logs/
 crash-reports/
+backups/
+
+# Minecraft client / local instance
+mods/
+config/
+resourcepacks/
+shaderpacks/
+screenshots/
+saves/
+options.txt
+servers.dat
+usercache.json
+usernamecache.json
 
 # Next.js
 node_modules/
 .next/
 out/
+.vercel/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # IDE / OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+desktop.ini
