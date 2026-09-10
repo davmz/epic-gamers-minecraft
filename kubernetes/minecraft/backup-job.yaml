@@ -1,3 +1,4 @@
+### Manual Test / Reference for backup-cronjob.yaml as it is done automatically now
 apiVersion: batch/v1
 kind: Job
 metadata:
