@@ -1,0 +1,21 @@
+server:
+  retention: "7d"
+
+  persistentVolume:
+    enabled: true
+    storageClass: minecraft-gp3
+    size: 8Gi
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+    limits:
+      memory: 1Gi
+
+alertmanager:
+  enabled: false
+
+prometheus-pushgateway:
+  enabled: false
