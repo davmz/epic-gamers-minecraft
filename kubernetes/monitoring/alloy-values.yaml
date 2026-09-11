@@ -1,0 +1,99 @@
+controller:
+  type: deployment
+  replicas: 1
+
+alloy:
+  configMap:
+    content: |-
+      logging {
+        level  = "info"
+        format = "logfmt"
+      }
+
+      // ---------------------------------------------------------
+      // DISCOVER KUBERNETES PODS
+      // ---------------------------------------------------------
+
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+
+      // ---------------------------------------------------------
+      // KEEP ONLY MINECRAFT LOGS
+      // ---------------------------------------------------------
+
+      discovery.relabel "minecraft_logs" {
+        targets = discovery.kubernetes.pods.targets
+
+        // Only collect pods from the minecraft namespace
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          regex         = "minecraft"
+          action        = "keep"
+        }
+
+        // namespace label
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+
+        // pod label
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+
+        // container label
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+
+        // app label
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app"]
+          target_label  = "app"
+        }
+      }
+
+      // ---------------------------------------------------------
+      // COLLECT POD LOGS
+      // ---------------------------------------------------------
+
+      loki.source.kubernetes "minecraft" {
+        targets    = discovery.relabel.minecraft_logs.output
+        forward_to = [loki.process.minecraft.receiver]
+      }
+
+      // ---------------------------------------------------------
+      // PROCESS LOGS
+      // ---------------------------------------------------------
+
+      loki.process "minecraft" {
+        stage.static_labels {
+          values = {
+            cluster = "egm-prod",
+          }
+        }
+
+        forward_to = [loki.write.local.receiver]
+      }
+
+      // ---------------------------------------------------------
+      // SEND LOGS TO LOKI
+      // ---------------------------------------------------------
+
+      loki.write "local" {
+        endpoint {
+          url = "http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push"
+        }
+      }
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+    limits:
+      memory: 256Mi
