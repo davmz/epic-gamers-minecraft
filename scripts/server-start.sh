@@ -73,3 +73,15 @@ echo ""
 echo "Minecraft server is running."
 
 kubectl get pods -n "$NAMESPACE"
+
+echo "Sending Discord server online notification..."
+
+if kubectl exec \
+  -n discord-bot \
+  deployment/discord-bot \
+  -- node src/notify.js server-online; then
+
+  echo "Discord notification sent."
+else
+  echo "Warning: Failed to send Discord notification."
+fi

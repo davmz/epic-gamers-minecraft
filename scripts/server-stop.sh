@@ -9,6 +9,22 @@ DEPLOYMENT="minecraft"
 echo "Stopping Minecraft server..."
 
 # ---------------------------------------------------------
+# SEND DISCORD SHUTDOWN NOTIFICATION
+# ---------------------------------------------------------
+
+echo "Sending Discord server shutdown notification..."
+
+if kubectl exec \
+  -n discord-bot \
+  deployment/discord-bot \
+  -- node src/notify.js server-stopping; then
+
+  echo "Discord notification sent."
+else
+  echo "Warning: Failed to send Discord notification."
+fi
+
+# ---------------------------------------------------------
 # SCALE MINECRAFT DOWN
 # ---------------------------------------------------------
 
