@@ -114,3 +114,28 @@ resource "aws_eks_fargate_profile" "discord_bot" {
     aws_iam_role_policy_attachment.fargate_pod_execution
   ]
 }
+
+# ---------------------------------------------------------
+# COREDNS FARGATE PROFILE
+# ---------------------------------------------------------
+
+resource "aws_eks_fargate_profile" "coredns" {
+  cluster_name           = var.EKS_CLUSTER_NAME
+  fargate_profile_name   = "${var.NAME}-coredns"
+  pod_execution_role_arn = aws_iam_role.fargate_pod_execution.arn
+  subnet_ids             = var.PRIVATE_SUBNET_IDS
+
+  selector {
+    namespace = "kube-system"
+
+    labels = {
+      "k8s-app" = "kube-dns"
+    }
+  }
+
+  tags = var.TAGS
+
+  depends_on = [
+    aws_iam_role_policy_attachment.fargate_pod_execution
+  ]
+}

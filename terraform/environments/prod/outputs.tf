@@ -27,3 +27,8 @@ output "discord_bot_fargate_pod_execution_role_arn" {
   description = "Discord bot Fargate Pod execution IAM role ARN"
   value       = module.discord_bot.fargate_pod_execution_role_arn
 }
+
+output "coredns_fargate_profile_name" {
+  description = "CoreDNS EKS Fargate profile name"
+  value       = module.discord_bot.coredns_fargate_profile_name
+}
