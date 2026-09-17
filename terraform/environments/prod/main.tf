@@ -106,3 +106,17 @@ module "minecraft_backups" {
     project = "epic-gamers-minecraft"
   }
 }
+
+# ---------------------------------------------------------
+# DISCORD BOT
+# ---------------------------------------------------------
+
+module "discord_bot" {
+  source = "../../modules/discord-bot"
+
+  NAME = "egm-prod"
+
+  TAGS = {
+    project = "epic-gamers-minecraft"
+  }
+}
