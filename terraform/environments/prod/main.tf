@@ -124,3 +124,33 @@ module "discord_bot" {
     project = "epic-gamers-minecraft"
   }
 }
+
+# ---------------------------------------------------------
+# GITHUB ACTIONS - EKS ACCESS
+# ---------------------------------------------------------
+
+resource "aws_eks_access_entry" "github_actions" {
+  cluster_name  = "egm-prod"
+  principal_arn = "arn:aws:iam::740901968217:role/epic-gamers-minecraft-github-oidc-test"
+
+  type = "STANDARD"
+
+  tags = {
+    project = "epic-gamers-minecraft"
+  }
+}
+
+resource "aws_eks_access_policy_association" "github_actions_discord_bot" {
+  cluster_name  = "egm-prod"
+  principal_arn = aws_eks_access_entry.github_actions.principal_arn
+
+  policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
+
+  access_scope {
+    type = "namespace"
+
+    namespaces = [
+      "discord-bot"
+    ]
+  }
+}
