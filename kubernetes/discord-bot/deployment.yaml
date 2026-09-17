@@ -21,6 +21,11 @@ spec:
           image: 740901968217.dkr.ecr.us-east-1.amazonaws.com/egm-prod-discord-bot:latest
           imagePullPolicy: Always
 
+          ports:
+            - name: bridge
+              containerPort: 3001
+              protocol: TCP
+
           envFrom:
             - secretRef:
                 name: discord-bot-config
