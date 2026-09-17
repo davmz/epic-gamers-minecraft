@@ -116,6 +116,10 @@ module "discord_bot" {
 
   NAME = "egm-prod"
 
+  EKS_CLUSTER_NAME = "egm-prod"
+
+  PRIVATE_SUBNET_IDS = module.vpc.private_subnet_ids
+
   TAGS = {
     project = "epic-gamers-minecraft"
   }

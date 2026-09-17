@@ -17,3 +17,13 @@ output "discord_bot_ecr_repository_url" {
   description = "Discord bot ECR repository URL"
   value       = module.discord_bot.repository_url
 }
+
+output "discord_bot_fargate_profile_name" {
+  description = "Discord bot EKS Fargate profile name"
+  value       = module.discord_bot.fargate_profile_name
+}
+
+output "discord_bot_fargate_pod_execution_role_arn" {
+  description = "Discord bot Fargate Pod execution IAM role ARN"
+  value       = module.discord_bot.fargate_pod_execution_role_arn
+}

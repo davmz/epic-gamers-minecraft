@@ -7,3 +7,13 @@ output "repository_url" {
   description = "Discord bot ECR repository URL"
   value       = aws_ecr_repository.this.repository_url
 }
+
+output "fargate_profile_name" {
+  description = "Discord bot EKS Fargate profile name"
+  value       = aws_eks_fargate_profile.discord_bot.fargate_profile_name
+}
+
+output "fargate_pod_execution_role_arn" {
+  description = "Discord bot Fargate Pod execution IAM role ARN"
+  value       = aws_iam_role.fargate_pod_execution.arn
+}
