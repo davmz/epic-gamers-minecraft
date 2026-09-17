@@ -47,13 +47,33 @@ public class BridgeWebSocketClient
             });
     }
 
+    public static void send(String message) {
+        if (webSocket == null) {
+            EpicGamersBridge.LOGGER.warn(
+                "Cannot send bridge message: WebSocket is not connected."
+            );
+
+            return;
+        }
+
+        webSocket.sendText(message, true)
+            .exceptionally(error -> {
+                EpicGamersBridge.LOGGER.error(
+                    "Failed to send bridge message.",
+                    error
+                );
+
+                return null;
+            });
+    }
+
     @Override
     public void onOpen(WebSocket webSocket) {
         EpicGamersBridge.LOGGER.info(
             "Minecraft Discord bridge WebSocket opened."
         );
 
-        WebSocket.Listener.super.onOpen(webSocket);
+        webSocket.request(1);
     }
 
     @Override
@@ -84,6 +104,8 @@ public class BridgeWebSocketClient
             reason
         );
 
+        BridgeWebSocketClient.webSocket = null;
+
         return null;
     }
 
@@ -96,5 +118,7 @@ public class BridgeWebSocketClient
             "Discord bridge WebSocket error.",
             error
         );
+
+        BridgeWebSocketClient.webSocket = null;
     }
 }
