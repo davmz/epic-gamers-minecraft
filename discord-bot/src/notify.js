@@ -1,15 +1,15 @@
 const { REST, Routes } = require("discord.js");
 
 const token = process.env.DISCORD_BOT_TOKEN;
-const logsChannelId = process.env.DISCORD_LOGS_CHANNEL_ID;
+const chatChannelId = process.env.DISCORD_CHAT_CHANNEL_ID;
 
 if (!token) {
   console.error("DISCORD_BOT_TOKEN is not configured.");
   process.exit(1);
 }
 
-if (!logsChannelId) {
-  console.error("DISCORD_LOGS_CHANNEL_ID is not configured.");
+if (!chatChannelId) {
+  console.error("DISCORD_CHAT_CHANNEL_ID is not configured.");
   process.exit(1);
 }
 
@@ -30,7 +30,7 @@ const rest = new REST({ version: "10" }).setToken(token);
 
 async function sendNotification() {
   try {
-    await rest.post(Routes.channelMessages(logsChannelId), {
+    await rest.post(Routes.channelMessages(chatChannelId), {
       body: {
         content: message,
       },
