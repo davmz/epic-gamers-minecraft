@@ -17,18 +17,11 @@ const client = new Client({
   ],
 });
 
-// ---------------------------------------------------------
-// START MINECRAFT WEBSOCKET BRIDGE
-// ---------------------------------------------------------
-
-startMinecraftBridge();
-
-// ---------------------------------------------------------
-// DISCORD CLIENT
-// ---------------------------------------------------------
-
 client.once("clientReady", async () => {
   console.log(`Bot logged in as ${client.user.tag}`);
+
+  // Start Minecraft WebSocket bridge after Discord is ready
+  startMinecraftBridge(client);
 
   try {
     const logsChannel = await client.channels.fetch(

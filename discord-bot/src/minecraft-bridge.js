@@ -2,7 +2,7 @@ const { WebSocketServer } = require("ws");
 
 const BRIDGE_PORT = 3001;
 
-function startMinecraftBridge() {
+function startMinecraftBridge(client) {
   const wss = new WebSocketServer({
     port: BRIDGE_PORT,
   });
@@ -18,16 +18,18 @@ function startMinecraftBridge() {
       `Minecraft bridge client connected from ${remoteAddress}`
     );
 
-    socket.on("message", (data) => {
+    socket.on("message", async (data) => {
       try {
-        const message = JSON.parse(data.toString());
+        const event = JSON.parse(data.toString());
 
         console.log("Minecraft bridge message received:");
-        console.log(message);
+        console.log(event);
+
+        await handleMinecraftEvent(client, event);
       } catch (error) {
         console.error(
-          "Minecraft bridge received invalid JSON:",
-          error.message
+          "Failed to process Minecraft bridge message:",
+          error
         );
       }
     });
@@ -46,7 +48,8 @@ function startMinecraftBridge() {
     socket.send(
       JSON.stringify({
         type: "connected",
-        message: "Connected to Epic Gamers Minecraft Discord bridge",
+        message:
+          "Connected to Epic Gamers Minecraft Discord bridge",
       })
     );
   });
@@ -59,6 +62,59 @@ function startMinecraftBridge() {
   });
 
   return wss;
+}
+
+async function handleMinecraftEvent(client, event) {
+  const channelId =
+    process.env.DISCORD_CHAT_CHANNEL_ID;
+
+  if (!channelId) {
+    console.error(
+      "DISCORD_CHAT_CHANNEL_ID is not configured."
+    );
+    return;
+  }
+
+  const channel =
+    await client.channels.fetch(channelId);
+
+  if (!channel?.isTextBased()) {
+    console.error(
+      "DISCORD_CHAT_CHANNEL_ID does not point to a text channel."
+    );
+    return;
+  }
+
+  let message;
+
+  switch (event.type) {
+    case "join":
+      message =
+        `🟢 **${event.player} joined the game**`;
+      break;
+
+    case "leave":
+      message =
+        `🔴 **${event.player} left the game**`;
+      break;
+
+    case "death":
+      message =
+        `💀 **${event.message}**`;
+      break;
+
+    default:
+      console.log(
+        `Ignoring unsupported Minecraft event: ${event.type}`
+      );
+      return;
+  }
+
+  await channel.send(message);
+
+  console.log(
+    `Minecraft ${event.type} event sent to Discord`
+  );
 }
 
 module.exports = {
