@@ -4,6 +4,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BridgeWebSocketClient
     implements WebSocket.Listener {
@@ -11,10 +15,32 @@ public class BridgeWebSocketClient
     private static final String BRIDGE_URL =
         "ws://discord-bot.discord-bot.svc.cluster.local:3001";
 
-    private static WebSocket webSocket;
+    private static final int RECONNECT_DELAY_SECONDS = 5;
+
+    private static final HttpClient HTTP_CLIENT =
+        HttpClient.newHttpClient();
+
+    private static final ScheduledExecutorService RECONNECT_EXECUTOR =
+        Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread =
+                new Thread(runnable, "discord-bridge-reconnect");
+
+            thread.setDaemon(true);
+
+            return thread;
+        });
+
+    private static final AtomicBoolean reconnectScheduled =
+        new AtomicBoolean(false);
+
+    private static volatile WebSocket webSocket;
 
     private BridgeWebSocketClient() {
     }
+
+    // ---------------------------------------------------------
+    // CONNECT
+    // ---------------------------------------------------------
 
     public static void connect() {
         EpicGamersBridge.LOGGER.info(
@@ -22,16 +48,15 @@ public class BridgeWebSocketClient
             BRIDGE_URL
         );
 
-        HttpClient client =
-            HttpClient.newHttpClient();
-
-        client.newWebSocketBuilder()
+        HTTP_CLIENT
+            .newWebSocketBuilder()
             .buildAsync(
                 URI.create(BRIDGE_URL),
                 new BridgeWebSocketClient()
             )
             .thenAccept(socket -> {
                 webSocket = socket;
+                reconnectScheduled.set(false);
 
                 EpicGamersBridge.LOGGER.info(
                     "Connected to Discord bridge."
@@ -43,12 +68,46 @@ public class BridgeWebSocketClient
                     error
                 );
 
+                webSocket = null;
+
+                scheduleReconnect();
+
                 return null;
             });
     }
 
+    // ---------------------------------------------------------
+    // RECONNECT
+    // ---------------------------------------------------------
+
+    private static void scheduleReconnect() {
+        if (!reconnectScheduled.compareAndSet(false, true)) {
+            return;
+        }
+
+        EpicGamersBridge.LOGGER.info(
+            "Discord bridge reconnect scheduled in {} seconds.",
+            RECONNECT_DELAY_SECONDS
+        );
+
+        RECONNECT_EXECUTOR.schedule(
+            () -> {
+                reconnectScheduled.set(false);
+                connect();
+            },
+            RECONNECT_DELAY_SECONDS,
+            TimeUnit.SECONDS
+        );
+    }
+
+    // ---------------------------------------------------------
+    // SEND MESSAGE
+    // ---------------------------------------------------------
+
     public static void send(String message) {
-        if (webSocket == null) {
+        WebSocket socket = webSocket;
+
+        if (socket == null) {
             EpicGamersBridge.LOGGER.warn(
                 "Cannot send bridge message: WebSocket is not connected."
             );
@@ -56,25 +115,40 @@ public class BridgeWebSocketClient
             return;
         }
 
-        webSocket.sendText(message, true)
+        socket.sendText(message, true)
             .exceptionally(error -> {
                 EpicGamersBridge.LOGGER.error(
                     "Failed to send bridge message.",
                     error
                 );
 
+                webSocket = null;
+                scheduleReconnect();
+
                 return null;
             });
     }
 
+    // ---------------------------------------------------------
+    // WEBSOCKET OPEN
+    // ---------------------------------------------------------
+
     @Override
     public void onOpen(WebSocket webSocket) {
+        BridgeWebSocketClient.webSocket = webSocket;
+
+        reconnectScheduled.set(false);
+
         EpicGamersBridge.LOGGER.info(
             "Minecraft Discord bridge WebSocket opened."
         );
 
         webSocket.request(1);
     }
+
+    // ---------------------------------------------------------
+    // MESSAGE FROM DISCORD BRIDGE
+    // ---------------------------------------------------------
 
     @Override
     public CompletionStage<?> onText(
@@ -92,6 +166,10 @@ public class BridgeWebSocketClient
         return null;
     }
 
+    // ---------------------------------------------------------
+    // CONNECTION CLOSED
+    // ---------------------------------------------------------
+
     @Override
     public CompletionStage<?> onClose(
         WebSocket webSocket,
@@ -106,8 +184,14 @@ public class BridgeWebSocketClient
 
         BridgeWebSocketClient.webSocket = null;
 
+        scheduleReconnect();
+
         return null;
     }
+
+    // ---------------------------------------------------------
+    // CONNECTION ERROR
+    // ---------------------------------------------------------
 
     @Override
     public void onError(
@@ -120,5 +204,7 @@ public class BridgeWebSocketClient
         );
 
         BridgeWebSocketClient.webSocket = null;
+
+        scheduleReconnect();
     }
 }
